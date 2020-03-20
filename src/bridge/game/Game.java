@@ -8,24 +8,27 @@ public class Game {
     // ============================================ CLASSES ==================================================
     private class GameStatus {
         int turn = 0;
-        int dealer = 0;
+        int dealer = -1;
         boolean isDoubled = false;
         boolean isRedoubled = false;
     }
 
+    private enum GAME_STATE { NONE, BIDDING, GAME }
+
     // ============================================ FIELDS ====================================================
     // There is no game without players (hmmm, always 4 players)
-    Player[] players = new Player[4];
+    private Player[] players = new Player[4];
 
     /* The game should store many dynamically changed values, i.e. gameStatus, isDoubled, playerTurn etc.
        Here comes a metaclass with these values as fields. */
-    GameStatus gameStatus = new GameStatus();
+    private GameStatus gameStatus = new GameStatus();
+    private GAME_STATE gameState = GAME_STATE.NONE;
 
     // Need to have one instance of card deck class
-    Deck deck = new Deck();
+    private Deck deck = new Deck();
 
     // The game has a bidding as well
-    Bidding bidding = new Bidding(gameStatus.dealer);
+    private Bidding bidding = new Bidding(gameStatus.dealer);
 
     // ============================================ METHODS ===================================================
     public Game() {
@@ -34,17 +37,24 @@ public class Game {
         }
     }
 
-    // Deal cards to player again
+    // Deal cards to player again, change the dealer and start new bidding
     public void newDeal() {
         Card[][] deal = deck.Deal();
         for (int i = 0; i < 4; ++i) {
             players[i].giveCards(deal[i]);
         }
+        gameState = GAME_STATE.BIDDING;
+        gameStatus.dealer = (gameStatus.dealer + 1) % 4;
+        bidding = new Bidding(gameStatus.dealer);
     }
 
-    // Comunicate between app interface and bidding
+    // Communicate between app interface and bidding. Returns true if the game awaits for next bid, false if the bidding has ended.
     public boolean addBid(Bid bid) {
-        return bidding.addBid(bid);
+        boolean isCorrect = bidding.addBid(bid);
+        if (bidding.checkBidding()) {
+            System.out.println(bidding.getWinningContract());
+        }
+        return true;
     }
 
     @Override

@@ -22,6 +22,9 @@ public class Main extends Application {
         Game g = new Game();
         g.newDeal();
 
+        g.addBid(new Bid("PASS"));
+        g.addBid(new Bid("PASS"));
+        g.addBid(new Bid("PASS"));
         g.addBid(new Bid(2, "HEARTS"));
         g.addBid(new Bid("DOUBLE"));
         g.addBid(new Bid("REDOUBLE"));

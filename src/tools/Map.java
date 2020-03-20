@@ -21,4 +21,11 @@ public class Map<KEYS, VALUES> {
         map.add(new Pair<KEYS, VALUES>(key, value));
         return true;
     }
+
+    public VALUES getValue(KEYS key) {
+        for (Pair<KEYS, VALUES> x: map) {
+            if (key == x.getKey()) return x.getValue();
+        }
+        return null;
+    }
 }

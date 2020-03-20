@@ -34,7 +34,7 @@ public class Bidding {
         for (int i = bidding.size() - 1; i >= 0; --i) {
             String color = bidding.get(i).getColor();
             if (!color.equals("PASS") && !color.equals("DOUBLE") && !color.equals("REDOUBLE")) {
-                return new Pair<Integer, Bid>(bidding.size() - i - 1, bidding.get(i));
+                return new Pair<Integer, Bid>((i + dealer) % 4, bidding.get(i));
             }
         }
         return new Pair<Integer, Bid>(0, new Bid("PASS")); // This case occurs only when all players passed
@@ -95,6 +95,27 @@ public class Bidding {
         // Increment turn counter
         turn = (turn + 1) % 4;
         return true;
+    }
+
+    // Check whether a pair won the bidding
+    public boolean checkBidding() {
+        boolean isOpened = !getLastBid().getValue().getColor().equals("PASS");
+        if (!isOpened && passes == 4) return true;
+        return isOpened && passes == 3;
+    }
+
+    // Get the winning contract
+    public String getWinningContract() {
+        int winner;
+        Bid lastBid = getLastBid().getValue();
+        int lastPlayer = getLastBid().getKey();
+
+        if (lastPlayer % 2 == 0) {
+            winner = colorProposalsNS.getValue(lastBid.getColor());
+        }
+        else winner = colorProposalsEW.getValue(lastBid.getColor());
+
+        return winner + String.valueOf(doubled) + lastBid.getLevel() + lastBid.getColor();
     }
 
     @Override
