@@ -73,7 +73,10 @@ public class Bidding {
 
         // Increment passes counter, reset it in other cases
         if (bid.getColor().equals("PASS")) passes++;
-        else passes = 0;
+        else {
+            passes = 0;
+            doubled = 0;
+        }
 
         // Mark doubled/redoubled contract
         if (bid.getColor().equals("DOUBLE")) doubled = 1;
