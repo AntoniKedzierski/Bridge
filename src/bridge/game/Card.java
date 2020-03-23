@@ -13,7 +13,7 @@ public class Card {
     private String color;
 
     // Paths to directory containing .png files
-    private static String pathToGraphic = Paths.projectPath + "/textures/cards/";
+    private static String pathToGraphic = "file:///" + Paths.projectPath + "/src/textures/" + Settings.theme + "/cards/";
 
     // Path to this card face and back
     private String face;
@@ -30,8 +30,8 @@ public class Card {
     public Card(char value, String color) {
         this.value = value;
         this.color = color;
-        this.face = pathToGraphic + Settings.theme + "_" + this.value + this.color.charAt(0) + ".png";
-        this.back = pathToGraphic + Settings.theme + "_back.png";
+        this.face = pathToGraphic + this.value + this.color.charAt(0) + ".png";
+        this.back = pathToGraphic + "back.png";
     }
 
     @Override

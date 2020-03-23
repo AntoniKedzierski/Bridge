@@ -45,6 +45,11 @@ public class Game {
         }
         gameState = GAME_STATE.BIDDING;
         gameStatus.dealer = (gameStatus.dealer + 1) % 4;
+        //startBidding();
+    }
+
+    // Start bidding
+    private void startBidding() {
         bidding = new Bidding(gameStatus.dealer);
     }
 
@@ -55,6 +60,15 @@ public class Game {
             System.out.println(bidding.getWinningContract());
         }
         return true;
+    }
+
+    // Accessors to fields
+    public Card[] getPlayerCards(int player) {
+        return players[player].getActiveCards();
+    }
+
+    public Card[] getPlayerGivenCards(int player) {
+        return players[player].getGivenCards();
     }
 
     @Override

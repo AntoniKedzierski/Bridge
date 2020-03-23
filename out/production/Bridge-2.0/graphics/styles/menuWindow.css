@@ -7,10 +7,13 @@
     -fx-font-family: Windlass;
     -fx-font-size: 16pt;
     -fx-skin: "graphics.animations.buttonFading";
+    -fx-min-height: 50;
+    -fx-min-width: 450;
 }
 
 .label {
     -fx-font-family: Windlass;
     -fx-font-size: 40pt;
     -fx-text-fill: white;
+    -fx-font-smoothing-type: white;
 }
