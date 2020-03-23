@@ -1,0 +1,16 @@
+.root {
+    -fx-background-color: radial-gradient(center 50% 50% , radius 100% , #417025, #1f3b2c);
+}
+
+.button {
+    -fx-background-color: radial-gradient(center 50% 50%, radius 50%, #fefefe, #d1d1d1);
+    -fx-font-family: Windlass;
+    -fx-font-size: 16pt;
+    -fx-skin: "graphics.animations.buttonFading";
+}
+
+.label {
+    -fx-font-family: Windlass;
+    -fx-font-size: 40pt;
+    -fx-text-fill: white;
+}
