@@ -2,7 +2,11 @@ package bridge.game;
 
 import bridge.bidding.Bid;
 import bridge.bidding.Bidding;
+import javafx.collections.ObservableList;
+import tools.Row;
 import tools.Settings;
+
+import java.util.Vector;
 
 public class Game {
     // ============================================ CLASSES ==================================================
@@ -28,13 +32,17 @@ public class Game {
     private Deck deck = new Deck();
 
     // The game has a bidding as well
-    private Bidding bidding = new Bidding(gameStatus.dealer);
+    private Bidding bidding;
 
     // ============================================ METHODS ===================================================
     public Game() {
         for (int i = 0; i < 4; ++i) {
             players[i] = new Player(Settings.falenicaNames[i]);
         }
+    }
+
+    public GAME_STATE getGameState() {
+        return gameState;
     }
 
     // Deal cards to player again, change the dealer and start new bidding
@@ -45,6 +53,7 @@ public class Game {
         }
         gameState = GAME_STATE.BIDDING;
         gameStatus.dealer = (gameStatus.dealer + 1) % 4;
+        bidding = new Bidding(gameStatus.dealer);
         //startBidding();
     }
 
@@ -58,6 +67,11 @@ public class Game {
         boolean isCorrect = bidding.addBid(bid);
         if (bidding.checkBidding()) {
             System.out.println(bidding.getWinningContract());
+            if (bidding.passed()) {
+                this.newDeal();
+                return false;
+            }
+            gameState = GAME_STATE.GAME;
         }
         return true;
     }
@@ -80,8 +94,32 @@ public class Game {
         return result;
     }
 
-    // Bidding summary
+    // BiddingModule summary
     public String biddingSummary() {
         return bidding.toString();
+    }
+
+    public Vector<Bid> getAvailableBids() {
+        return bidding.getPossibleBids();
+    }
+
+    public boolean mayDouble() {
+        return bidding.checkBidCorrectness(new Bid("DOUBLE"));
+    }
+
+    public boolean mayRedouble() {
+        return bidding.checkBidCorrectness(new Bid("REDOUBLE"));
+    }
+
+    public boolean inBidding() {
+        return gameState == GAME_STATE.BIDDING;
+    }
+
+    public boolean inGame() {
+        return gameState == GAME_STATE.GAME;
+    }
+
+    public String[][] getBiddingHistory() {
+        return bidding.generateHistory();
     }
 }

@@ -28,4 +28,18 @@ public class Map<KEYS, VALUES> {
         }
         return null;
     }
+
+    public Pair<KEYS, VALUES> getPair(int index) {
+        if (index < 0 || index >= map.size()) return null;
+        return map.get(index);
+    }
+
+    @Override
+    public String toString() {
+        String result = "";
+        for (Pair<KEYS, VALUES> x: map) {
+            result += x.getKey().toString() + ": " + x.getValue().toString() + "\n";
+        }
+        return result;
+    }
 }

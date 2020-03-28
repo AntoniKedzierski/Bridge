@@ -1,5 +1,8 @@
 package bridge.game;
 
+import bridge.ai.BiddingModule;
+import bridge.bidding.Bid;
+
 public class Player {
     // ============================================= FIELDS ===================================================
     // It is good to know "What's your name?"
@@ -29,6 +32,7 @@ public class Player {
     public void giveCards(Card[] hand) {
         activeCards = Deck.sort(hand);
         givenCards = activeCards.clone();
+        BiddingModule ai = new BiddingModule(activeCards);
     }
 
     // Accessors

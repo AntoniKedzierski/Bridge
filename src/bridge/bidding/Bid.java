@@ -54,9 +54,23 @@ public class Bid {
             case "CLUBS":
                 result += "♣";
                 break;
+            case "NOTRUMP":
+                result += "NT";
+                break;
             default:
                 return "???";
         }
+        return result;
+    }
+
+    public String toStringNoColor() {
+        if (color.equals("PASS")) return "pas";
+        if (color.equals("DOUBLE")) return "X";
+        if (color.equals("REDOUBLE")) return "XX";
+
+        String result = String.valueOf(level);
+        if (color.equals("NOTRUMP")) result += "NT";
+        else result += color.charAt(0);
         return result;
     }
 }

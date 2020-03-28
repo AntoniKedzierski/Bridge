@@ -9,14 +9,14 @@ public class buttonFading extends ButtonSkin {
     public buttonFading(Button control) {
         super(control);
 
-        final FadeTransition fadeIn = new FadeTransition(Duration.millis(100));
+        final FadeTransition fadeIn = new FadeTransition(Duration.millis(200));
         fadeIn.setNode(control);
         fadeIn.setToValue(1);
         control.setOnMouseEntered(event -> fadeIn.playFromStart());
 
-        final FadeTransition fadeOut = new FadeTransition(Duration.millis(100));
+        final FadeTransition fadeOut = new FadeTransition(Duration.millis(200));
         fadeOut.setNode(control);
-        fadeOut.setToValue(0.9);
+        fadeOut.setToValue(0.90);
         control.setOnMouseExited(event -> fadeOut.playFromStart());
 
         control.setOpacity(0.9);

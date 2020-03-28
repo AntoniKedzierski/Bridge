@@ -1,13 +1,16 @@
 package bridge.bidding;
 
+import javafx.collections.ObservableList;
 import tools.Pair;
 
 import tools.Map;
+import tools.Row;
+
 import java.util.Vector;
 
 public class Bidding {
     // ================================================= FIELDS ====================================================
-    // Bidding is an array of bids, dynamic array
+    // BiddingModule is an array of bids, dynamic array
     Vector<Bid> bidding = new Vector<Bid>();
 
     // Probably this will be useful
@@ -29,6 +32,18 @@ public class Bidding {
         colorProposalsEW = new Map<String, Integer>();
     }
 
+    public int getDealer() {
+        return dealer;
+    }
+
+    public Vector<Bid> getBids() {
+        return bidding;
+    }
+
+    public boolean passed() {
+        return passes == 4;
+    }
+
     // We need access to the last "significant" bid and its distance from the end of the container
     private Pair<Integer, Bid> getLastBid() {
         for (int i = bidding.size() - 1; i >= 0; --i) {
@@ -41,7 +56,7 @@ public class Bidding {
     }
 
     // Before adding new bid to the container, we need to check whether it is correct or not, based on previous bids
-    private boolean checkBidPropriety(Bid bid) {
+    public boolean checkBidCorrectness(Bid bid) {
         // This is obvious
         if (bid.getLevel() > 7 || bid.getLevel() < 0) return false;
 
@@ -59,6 +74,9 @@ public class Bidding {
         if (bid.getColor().equals("DOUBLE")) {
             // But not own
             if (passes % 2 == 1) return false;
+
+            // If there is no bids
+            if (getLastBid().getValue().getLevel() == 0) return false;
             return doubled == 0;
         }
 
@@ -69,7 +87,7 @@ public class Bidding {
     // Add bid to the container
     public boolean addBid(Bid bid) {
         // Ask a user to give another bid, because this is incorrect
-        if (!checkBidPropriety(bid)) return false;
+        if (!checkBidCorrectness(bid)) return false;
 
         // Increment passes counter, reset it in other cases
         if (bid.getColor().equals("PASS")) passes++;
@@ -107,6 +125,27 @@ public class Bidding {
         return isOpened && passes == 3;
     }
 
+    // Get all possible bids
+    public Vector<Bid> getPossibleBids() {
+        String[] colors = { "CLUBS", "DIAMONDS", "HEARTS", "SPADES", "NOTRUMP" };
+        Vector<Bid> correctBids = new Vector<>();
+        int lastBidLevel = getLastBid().getValue().getLevel();
+        if (lastBidLevel == 0) lastBidLevel = 1;
+
+        for (int level = lastBidLevel; level < 8; level++) {
+            for (int i = 0; i < 5; ++i) {
+                Bid sample = new Bid(level, colors[i]);
+                if (checkBidCorrectness(sample)) correctBids.add(sample);
+            }
+        }
+
+        if (checkBidCorrectness(new Bid("DOUBLE"))) correctBids.add(new Bid("DOUBLE"));
+        if (checkBidCorrectness(new Bid("REDOUBLE"))) correctBids.add(new Bid("REDOUBE"));
+        correctBids.add(new Bid("PASS"));
+
+        return correctBids;
+    }
+
     // Get the winning contract
     public String getWinningContract() {
         int winner;
@@ -117,6 +156,8 @@ public class Bidding {
             winner = colorProposalsNS.getValue(lastBid.getColor());
         }
         else winner = colorProposalsEW.getValue(lastBid.getColor());
+
+        System.out.println(this.toString());
 
         return winner + String.valueOf(doubled) + lastBid.getLevel() + lastBid.getColor();
     }
@@ -133,6 +174,19 @@ public class Bidding {
             result += bidding.get(i).toString() + "\t";
             if ((dealer + i) % 4 == 3) result += "\n";
         }
+        return result;
+    }
+
+    public String[][] generateHistory() {
+        int rows = (int)Math.ceil((dealer + bidding.size()) / 4.0);
+        String[][] result = new String[rows][4];
+
+        for (int i = 0; i < dealer; ++i) result[0][i] = "";
+        for (int i = 0; i < bidding.size(); ++i)
+            result[(int)((i + dealer) / 4)][(i + dealer) % 4]
+                    = bidding.get(i).toStringNoColor();
+        for (int i = dealer + bidding.size(); i < 4 * rows; ++i) result[rows - 1][i % 4] = "";
+
         return result;
     }
 }

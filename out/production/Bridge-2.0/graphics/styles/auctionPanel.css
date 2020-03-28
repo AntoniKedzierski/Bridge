@@ -1,0 +1,22 @@
+.button {
+    -fx-background-color: radial-gradient(center 50% 50%, radius 50%, #fefefe, #e8e8e8);
+    -fx-font-family: Windlass;
+    -fx-font-size: 10pt;
+    -fx-skin: "graphics.animations.buttonFading";
+    -fx-min-height: 30;
+}
+
+.button:disabled {
+    -fx-background-color: #d1d1d1;
+    -fx-font-family: Windlass;
+    -fx-font-size: 10pt;
+    -fx-min-height: 30;
+    -fx-opacity: 0.5;
+}
+
+.table-view {
+    -fx-background-color: #fefefe;
+    -fx-font-family: Windlass;
+    -fx-font-size: 10pt;
+}
+

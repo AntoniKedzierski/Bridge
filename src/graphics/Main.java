@@ -1,16 +1,22 @@
 package graphics;
 
+import bridge.bidding.Bid;
 import bridge.game.Card;
 import bridge.game.Deck;
 import bridge.game.Game;
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
@@ -23,9 +29,11 @@ import javafx.scene.transform.Rotate;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.scene.canvas.Canvas;
+import tools.Row;
 import tools.Settings;
 
 import java.util.Set;
+import java.util.Vector;
 
 
 public class Main extends Application {
@@ -99,8 +107,8 @@ public class Main extends Application {
         // Add all that stuff to the layout
         layout.getChildren().addAll(title, fakeTitle, newGame, knowledgeBase, settings, quit);
         layout.setAlignment(Pos.CENTER);
-        window.setScene(new Scene(layout, 800, 600));
-        window.setMaximized(true);
+        window.setScene(new Scene(layout, 1200, 800));
+        // window.setMaximized(true);
     }
 
     private void gamePanel() {
@@ -116,12 +124,13 @@ public class Main extends Application {
         GridPane layout = new GridPane();
         layout.setStyle("-fx-background-color: radial-gradient(center 50% 50% , radius 100% , #417025, #1f3b2c);");
 
-        boolean[] openCards = { false, false, true, false };
+        boolean[] openCards = { true, true, true, true };
         Canvas canvas = renderCards(openCards);
+        canvas.setId("CARDS");
         GridPane.setConstraints(canvas, 0, 0, 3, 1);
         layout.getChildren().add(canvas);
 
-
+        drawAuctionPanel(layout);
 
         window.setScene(new Scene(layout, width, height));
     }
@@ -145,7 +154,7 @@ public class Main extends Application {
     // Render cards
     private Canvas renderCards(boolean[] openCards) {
         // Calculate size and cords
-        double width = window.getScene().getWidth() * Settings.cardTableRatio;
+        double width = window.getScene().getWidth() * 0.75;
         double height = window.getScene().getHeight();
 
         Canvas canvas = new Canvas(width, height);
@@ -189,7 +198,7 @@ public class Main extends Application {
         }
         
         // South:
-        Card[] southHand = game.getPlayerCards(1);
+        Card[] southHand = game.getPlayerCards(2);
         hand = new Image[southHand.length];
         for (int i = 0; i < southHand.length; ++i) {
             // Get .png file
@@ -206,11 +215,11 @@ public class Main extends Application {
 
         gc.setFill(Color.WHITE);
         gc.setFont(Font.font("Windlass", 16));
-        if (Settings.showSouthPC) gc.fillText("Hand PC: " + (int)Deck.getStrength(southHand), width * 0.25, height * 0.75);
+        if (Settings.showSouthPC) gc.fillText("Hand PC: " + (int)Deck.getStrength(southHand), 10, 20);
         
         // West:
         double westPitchAngle = 90;
-        Card[] westHand = game.getPlayerCards(1);
+        Card[] westHand = game.getPlayerCards(3);
         hand = new Image[westHand.length];
         for (int i = 0; i < westHand.length; ++i) {
             // Get .png file
@@ -219,13 +228,177 @@ public class Main extends Application {
             hand[i] = new Image(path);
 
             double angle = -Settings.cardSpanAngle + (2 * i * Settings.cardSpanAngle / westHand.length) + Settings.cardSpanPitch + westPitchAngle;
-            double x = -radius + radius * Math.sin(Math.toRadians(angle));
+            double x = - radius + radius * Math.sin(Math.toRadians(angle));
             double y = 0.5 * height - 0.5 * radius - radius * Math.cos(Math.toRadians(angle));
 
             drawRotatedImage(gc, hand[i], angle, x, y, Settings.cardWidth, Settings.cardHeight);
         }
 
         return canvas;
+    }
+
+    private void drawAuctionPanel(GridPane presentGrid) {
+        if (!game.inBidding()) {
+            if (!game.inGame()) return;
+
+            VBox leftPanel = new VBox(10);
+            leftPanel.getStylesheets().add(getClass().getResource("styles/auctionPanel.css").toExternalForm());
+            leftPanel.setPadding(new Insets(5));
+
+            TableView history = createBiddingTable();
+            final ObservableList<Row> data = FXCollections.observableArrayList();
+            String[][] biddingHistory = game.getBiddingHistory();
+
+            for (int i = 0; i < biddingHistory.length; ++i) {
+                data.add(new Row(biddingHistory[i]));
+            }
+
+            history.setItems(data);
+
+            leftPanel.getChildren().add(history);
+
+            GridPane.setConstraints(leftPanel, 3, 0);
+            presentGrid.getChildren().add(leftPanel);
+            return;
+        }
+
+        GridPane buttons = new GridPane();
+        buttons.getStylesheets().add(getClass().getResource("styles/auctionPanel.css").toExternalForm());
+        buttons.setHgap(5);
+        buttons.setVgap(5);
+        Vector<Bid> activeButtons = game.getAvailableBids();
+
+        double minWidth = 0.25 * window.getScene().getWidth() - 30;
+        buttons.setPadding(new Insets(5));
+
+        String[] colors = { "CLUBS", "DIAMONDS", "HEARTS", "SPADES", "NOTRUMP" };
+        Button[] bids = new Button[35];
+
+        for (int level = 1; level < 8; level++) {
+            for (int i = 0; i < 5; ++i) {
+                final Bid bid = new Bid(level, colors[i]);
+                bids[(level - 1) * 5 + i] = new Button(bid.toStringNoColor());
+
+                bids[(level - 1) * 5 + i].setDisable(true);
+                for (Bid active : activeButtons) {
+                    if (active.getColor().equals(colors[i])) {
+                        if (active.getLevel() == level) {
+                            bids[(level - 1) * 5 + i].setDisable(false);
+                            break;
+                        }
+                    }
+                }
+
+                bids[(level - 1) * 5 + i].setOnAction(event -> {
+                    game.addBid(bid);
+                    presentGrid.getChildren().remove(buttons);
+                    drawAuctionPanel(presentGrid);
+                });
+
+
+                bids[(level - 1) * 5 + i].setMinWidth(minWidth / 5.0);
+                GridPane.setConstraints(bids[(level - 1) * 5 + i], i, level - 1);
+                buttons.getChildren().add(bids[(level - 1) * 5 + i]);
+            }
+        }
+
+
+        Button pass = new Button("PASS");
+        pass.setOnAction(event -> {
+            if (!game.addBid(new Bid("PASS"))) {
+                presentGrid.getChildren().removeAll();
+
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Game aborted!");
+                alert.setHeaderText("All players passed");
+                alert.showAndWait();
+
+                gamePanel();
+            }
+            presentGrid.getChildren().remove(buttons);
+            drawAuctionPanel(presentGrid);
+        });
+
+        pass.setMinWidth(3 * minWidth / 5.0 + 10);
+        GridPane.setConstraints(pass, 1, 7, 3, 1);
+        buttons.getChildren().add(pass);
+
+
+
+        Button doubleBtn = new Button("X");
+        doubleBtn.setOnAction(event -> {
+            game.addBid(new Bid("DOUBLE"));
+            presentGrid.getChildren().remove(buttons);
+            drawAuctionPanel(presentGrid);
+        });
+
+        if (!game.mayDouble()) doubleBtn.setDisable(true);
+
+        doubleBtn.setMinWidth(minWidth / 5.0);
+        GridPane.setConstraints(doubleBtn, 0, 7);
+        buttons.getChildren().add(doubleBtn);
+
+
+
+        Button redoubleBtn = new Button("XX");
+        redoubleBtn.setOnAction(event -> {
+            game.addBid(new Bid("REDOUBLE"));
+            presentGrid.getChildren().remove(buttons);
+            drawAuctionPanel(presentGrid);
+        });
+
+        if (!game.mayRedouble()) redoubleBtn.setDisable(true);
+
+        redoubleBtn.setMinWidth(minWidth / 5.0);
+        GridPane.setConstraints(redoubleBtn, 4, 7);
+        buttons.getChildren().add(redoubleBtn);
+
+        TableView history = createBiddingTable();
+        final ObservableList<Row> data = FXCollections.observableArrayList();
+        String[][] biddingHistory = game.getBiddingHistory();
+
+        for (int i = 0; i < biddingHistory.length; ++i) {
+            data.add(new Row(biddingHistory[i]));
+        }
+
+        history.setItems(data);
+
+        GridPane.setConstraints(history, 0, 8, 5, 1);
+        buttons.getChildren().add(history);
+
+        GridPane.setConstraints(buttons, 3, 0);
+        presentGrid.getChildren().add(buttons);
+    }
+
+    private TableView<Row> createBiddingTable() {
+        double minWidth = 0.25 * window.getScene().getWidth() - 10;
+        double minHeight = 144;
+
+        TableView table = new TableView();
+        table.setEditable(false);
+        table.setPrefSize(minWidth, minHeight);
+        table.setMaxHeight(400);
+
+        TableColumn north = new TableColumn("North");
+        TableColumn east = new TableColumn("East");
+        TableColumn south = new TableColumn("South");
+        TableColumn west = new TableColumn("West");
+
+        north.setPrefWidth(minWidth / 4.0);
+        north.setCellValueFactory(new PropertyValueFactory<Row, String>("north"));
+
+        east.setPrefWidth(minWidth / 4.0);
+        east.setCellValueFactory(new PropertyValueFactory<Row, String>("east"));
+
+        south.setPrefWidth(minWidth / 4.0);
+        south.setCellValueFactory(new PropertyValueFactory<Row, String>("south"));
+
+        west.setPrefWidth(minWidth / 4.0);
+        west.setCellValueFactory(new PropertyValueFactory<Row, String>("west"));
+
+        table.getColumns().addAll(north, east, south, west);
+
+        return table;
     }
 
     // ========================================= TOOLS ===============================================
