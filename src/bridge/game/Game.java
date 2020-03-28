@@ -45,6 +45,8 @@ public class Game {
         return gameState;
     }
 
+    public int getDealer() { return gameStatus.dealer; }
+
     // Deal cards to player again, change the dealer and start new bidding
     public void newDeal() {
         Card[][] deal = deck.Deal();

@@ -33,6 +33,7 @@ public class Player {
         activeCards = Deck.sort(hand);
         givenCards = activeCards.clone();
         BiddingModule ai = new BiddingModule(activeCards);
+        ai.printAnalyze();
     }
 
     // Accessors

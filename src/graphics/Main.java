@@ -215,7 +215,8 @@ public class Main extends Application {
 
         gc.setFill(Color.WHITE);
         gc.setFont(Font.font("Windlass", 16));
-        if (Settings.showSouthPC) gc.fillText("Hand PC: " + (int)Deck.getStrength(southHand), 10, 20);
+        if (Settings.showSouthPC) gc.fillText("Hand PC: " + (int)Deck.getStrength(southHand), 10, 40);
+        gc.fillText("Dealer: " + game.getDealer(), 10, 20);
         
         // West:
         double westPitchAngle = 90;
